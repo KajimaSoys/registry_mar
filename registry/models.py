@@ -5,7 +5,7 @@ class DoctorTypes(models.Model):
     """Модель врачебных специализаций"""
     id = models.BigAutoField(primary_key=True, verbose_name='id')
     name = models.CharField(verbose_name='Специализация', max_length=100)
-    enabled = models.BooleanField(verbose_name='Активен?')
+    enabled = models.BooleanField(verbose_name='Активен?', default=True)
 
     def __str__(self):
         return self.name
@@ -27,10 +27,13 @@ class Doctors(models.Model):
     born = models.DateField(verbose_name='Год рождения')
     typeid = models.ForeignKey(DoctorTypes, models.CASCADE, 'TypeID', verbose_name='Специализация')
     schedule = models.ManyToManyField('Schedule', verbose_name='Открытые даты для посещения')
-    enabled = models.BooleanField(verbose_name='Активен?')
+    enabled = models.BooleanField(verbose_name='Активен?', default=True)
 
     def __str__(self):
         return self.lastname
+
+    def get_fullname(self):
+        return f'{self.lastname} {self.firstname} {self.patronymic}'
 
     class Meta:
         verbose_name = 'Доктор'
@@ -42,7 +45,7 @@ class Exempts(models.Model):
     id = models.BigAutoField(primary_key=True, verbose_name='id')
     exempttype = models.CharField(verbose_name='Льгота', max_length=50)
     exempt = models.IntegerField(verbose_name='Сумма льготы')
-    enabled = models.BooleanField(verbose_name='Активен?')
+    enabled = models.BooleanField(verbose_name='Активен?', default=True)
 
     def __str__(self):
         return self.exempttype
@@ -61,9 +64,9 @@ class Medcards(models.Model):
     district = models.CharField(verbose_name='Район', max_length=50)
     policynumber = models.CharField(verbose_name='Номер медицинского полиса', max_length=10)
     year = models.SmallIntegerField(verbose_name='Год рождения')
-    sign = models.BooleanField(verbose_name='Работник предприятия?')
+    sign = models.BooleanField(verbose_name='Работник предприятия?', default=False)
     department = models.CharField(verbose_name='Отдел, в котороом работает', max_length=30, blank=True)
-    enabled = models.BooleanField(verbose_name='Активен?')
+    enabled = models.BooleanField(verbose_name='Активен?', default=True)
     exemptid = models.ForeignKey(Exempts, models.CASCADE, 'ExemptID', verbose_name='Льгота', blank=True, null=True)
 
     def __str__(self):
@@ -78,10 +81,10 @@ class Rooms(models.Model):
     """Модель кабинетов"""
     id = models.BigAutoField(primary_key=True, verbose_name='id')
     number = models.IntegerField(verbose_name='Номер кабинета')
-    enabled = models.BooleanField(verbose_name='Активен?')
+    enabled = models.BooleanField(verbose_name='Активен?', default=True)
 
     def __str__(self):
-        return self.number
+        return str(self.number)
 
     class Meta:
         verbose_name = 'Кабинет'
@@ -93,7 +96,7 @@ class Services(models.Model):
     id = models.BigAutoField(primary_key=True, verbose_name='id')
     name = models.CharField(verbose_name='Название услуги', max_length=100)
     cost = models.IntegerField(verbose_name='Стоимость услуги')
-    enabled = models.BooleanField(verbose_name='Активен?')
+    enabled = models.BooleanField(verbose_name='Активен?', default=True)
 
     def __str__(self):
         return self.name
@@ -111,7 +114,8 @@ class Schedule(models.Model):
     end = models.TimeField(verbose_name='Работает до')
     # doctorid = models.ManyToManyField(Doctors, 'DoctorID', verbose_name='Доктор')
     roomid = models.ForeignKey(Rooms, models.CASCADE, 'RoomID', verbose_name='Кабинет')  #Под вопросом, возможно, что стоит перекинуть на модель доктора
-    enabled = models.BooleanField(verbose_name='Активен?')
+    free = models.BooleanField(verbose_name='Свободен?', default=True)
+    enabled = models.BooleanField(verbose_name='Активен?', default=True)
 
     def __str__(self):
         return f'{self.date} - ({self.start}-{self.end})'  # ИЗМЕНИТЬ!
@@ -130,11 +134,11 @@ class Talons(models.Model):
     datestart = models.DateField(verbose_name='Дата посещения')
     timestart = models.TimeField(verbose_name='Время посещения')
     service = models.ManyToManyField(Services, verbose_name="Услуги")
-    close = models.BooleanField(verbose_name='Закрыт?')
+    close = models.BooleanField(verbose_name='Закрыт?', default=False)
     comment = models.TextField(verbose_name='Примечания (результаты приема)')
     cost = models.IntegerField(verbose_name='Стоимость услуг', default=0)
     summa = models.IntegerField(verbose_name='К оплате', default=0)
-    enabled = models.BooleanField(verbose_name='Активен?')
+    enabled = models.BooleanField(verbose_name='Активен?', default=True)
 
     def __str__(self):
         return self.mcid.fio
