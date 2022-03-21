@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.html import mark_safe
 
 
 class DoctorTypes(models.Model):
@@ -18,22 +19,35 @@ class DoctorTypes(models.Model):
 class Doctors(models.Model):
     """Модель докторов"""
     id = models.BigAutoField(primary_key=True, verbose_name='id')
-    lastname = models.CharField(verbose_name='Имя', max_length=20)
-    firstname = models.CharField(verbose_name='Фамилия', max_length=20)
+    lastname = models.CharField(verbose_name='Фамилия', max_length=20)
+    firstname = models.CharField(verbose_name='Имя', max_length=20)
     patronymic = models.CharField(verbose_name='Отчество', max_length=20)
     university = models.CharField(verbose_name='Университет', max_length=100)
     experience = models.IntegerField(verbose_name='Опыт работы')
     phone = models.CharField(verbose_name='Номер телефона', max_length=20)
-    born = models.DateField(verbose_name='Год рождения')
+    born = models.DateField(verbose_name='Дата рождения')
     typeid = models.ForeignKey(DoctorTypes, models.CASCADE, 'TypeID', verbose_name='Специализация')
     schedule = models.ManyToManyField('Schedule', verbose_name='Открытые даты для посещения')
     enabled = models.BooleanField(verbose_name='Активен?', default=True)
+    img = models.ImageField(verbose_name='Аватар', upload_to='img')
 
     def __str__(self):
         return self.lastname
 
     def get_fullname(self):
         return f'{self.lastname} {self.firstname} {self.patronymic}'
+    get_fullname.short_description = 'ФИО'
+
+    def image_tag(self):
+        if self.pk is None:
+            image = '<p>Предпросмотр пока не доступен, загрузите изображение и сохраните объект</p>'
+        else:
+            image = f'<a href="/media/{self.img}">' \
+                    f'<img src="/media/{self.img}" width="320" height="430" />' \
+                    '</a>'
+        return mark_safe(image)
+    image_tag.short_description = 'Изображение'
+    image_tag.allow_tags = True
 
     class Meta:
         verbose_name = 'Доктор'
@@ -63,7 +77,7 @@ class Medcards(models.Model):
     address = models.CharField(verbose_name='Адрес', max_length=150)
     district = models.CharField(verbose_name='Район', max_length=50)
     policynumber = models.CharField(verbose_name='Номер медицинского полиса', max_length=10)
-    year = models.SmallIntegerField(verbose_name='Год рождения')
+    year = models.DateField(verbose_name='Год рождения')
     sign = models.BooleanField(verbose_name='Работник предприятия?', default=False)
     department = models.CharField(verbose_name='Отдел, в котороом работает', max_length=30, blank=True)
     enabled = models.BooleanField(verbose_name='Активен?', default=True)
@@ -118,7 +132,7 @@ class Schedule(models.Model):
     enabled = models.BooleanField(verbose_name='Активен?', default=True)
 
     def __str__(self):
-        return f'{self.date} - ({self.start}-{self.end})'  # ИЗМЕНИТЬ!
+        return f'{self.date} - ({self.start}-{self.end}) - к. {self.roomid}'  # ИЗМЕНИТЬ!
 
     class Meta:
         verbose_name = 'Расписание'
@@ -134,14 +148,19 @@ class Talons(models.Model):
     datestart = models.DateField(verbose_name='Дата посещения')
     timestart = models.TimeField(verbose_name='Время посещения')
     service = models.ManyToManyField(Services, verbose_name="Услуги")
-    close = models.BooleanField(verbose_name='Закрыт?', default=False)
-    comment = models.TextField(verbose_name='Примечания (результаты приема)')
+
     cost = models.IntegerField(verbose_name='Стоимость услуг', default=0)
     summa = models.IntegerField(verbose_name='К оплате', default=0)
+    comment = models.TextField(verbose_name='Примечания (результаты приема)', blank=True)
+    close = models.BooleanField(verbose_name='Закрыт?', default=False)
     enabled = models.BooleanField(verbose_name='Активен?', default=True)
 
     def __str__(self):
         return self.mcid.fio
+
+    def get_patient(self):
+        return self.mcid.fio
+    get_patient.short_description = 'Пациент'
 
     class Meta:
         verbose_name = 'Запись на прием'
