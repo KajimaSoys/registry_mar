@@ -8,7 +8,4 @@ urlpatterns = [
     path("get_record' }}", get_record),
     path("get_cost' }}", get_cost),
     path("change_schedule' }}", change_schedule),
-    # path("get_exempt' }}", get_exempt),
-    # path("change_balance' }}", change_balance),
-
 ]

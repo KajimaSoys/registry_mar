@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.html import mark_safe
+from django.contrib.auth.models import User
 
 
 class DoctorTypes(models.Model):
@@ -30,6 +31,7 @@ class Doctors(models.Model):
     schedule = models.ManyToManyField('Schedule', verbose_name='Открытые даты для посещения')
     enabled = models.BooleanField(verbose_name='Активен?', default=True)
     img = models.ImageField(verbose_name='Аватар', upload_to='img')
+    created_by = models.ForeignKey(User, on_delete=models.SET(1), verbose_name='Пользователь')
 
     def __str__(self):
         return self.lastname
